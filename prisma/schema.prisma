@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ComplaintStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  complaints Complaint[]
+  votes      Vote[]
+  comments   Comment[]
+  statusLogs StatusLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Complaint {
+  id          String          @id @default(cuid())
+  title       String
+  description String          @db.Text
+  category    String
+  location    String?
+  status      ComplaintStatus @default(PENDING)
+  isAnonymous Boolean         @default(false)
+  images      String[]
+  votesCount  Int             @default(0)
+  authorId    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  author     User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes      Vote[]
+  comments   Comment[]
+  statusLogs StatusLog[]
+
+  @@map("complaints")
+}
+
+model Vote {
+  id          String @id @default(cuid())
+  userId      String
+  complaintId String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, complaintId])
+  @@map("votes")
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  text        String   @db.Text
+  authorId    String
+  complaintId String
+  createdAt   DateTime @default(now())
+
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model StatusLog {
+  id          String          @id @default(cuid())
+  complaintId String
+  changedById String
+  oldStatus   ComplaintStatus?
+  newStatus   ComplaintStatus
+  comment     String?         @db.Text
+  images      String[]
+  createdAt   DateTime        @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  changedBy User      @relation(fields: [changedById], references: [id], onDelete: Cascade)
+
+  @@map("status_logs")
+}

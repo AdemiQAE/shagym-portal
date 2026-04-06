@@ -1,0 +1,139 @@
+{
+  "nav": {
+    "feed": "Обращения",
+    "submit": "Подать обращение",
+    "cabinet": "Личный кабинет",
+    "admin": "Администратор",
+    "login": "Войти",
+    "register": "Регистрация",
+    "logout": "Выйти",
+    "logo": "Жалобы"
+  },
+  "hero": {
+    "title": "Слышим каждого",
+    "subtitle": "Сообщайте о проблемах — мы найдём решение",
+    "eyebrow": "Портал обращений — Казахстан",
+    "cta": "Подать обращение",
+    "stats_complaints": "Обращений",
+    "stats_resolved": "Решено",
+    "stats_votes": "Голосов",
+    "usp_1": "Прозрачность",
+    "usp_2": "Рейтинг по голосам",
+    "usp_3": "Отчёт об исполнении"
+  },
+  "feed": {
+    "title": "Все обращения",
+    "sort_new": "Новые",
+    "sort_top": "Популярные",
+    "sort_resolved": "Решённые",
+    "filter_all": "Все",
+    "empty": "Обращений нет",
+    "load_more": "Загрузить ещё"
+  },
+  "categories": {
+    "all": "Все категории",
+    "road": "Дороги",
+    "housing": "ЖКХ",
+    "ecology": "Экология",
+    "safety": "Безопасность",
+    "education": "Образование",
+    "other": "Другое"
+  },
+  "status": {
+    "PENDING": "Ожидает",
+    "ACCEPTED": "Принято",
+    "IN_PROGRESS": "Рассматривается",
+    "RESOLVED": "Решено",
+    "CANCELLED": "Отклонено"
+  },
+  "complaint": {
+    "votes": "голосов",
+    "vote": "Поддержать",
+    "voted": "Вы поддержали",
+    "comments": "Комментарии",
+    "anonymous": "Анонимно",
+    "share": "Поделиться",
+    "timeline": "История изменений",
+    "location": "Местоположение",
+    "category": "Категория",
+    "submitted_lbl": "Отправлено",
+    "submitted": "подал(а)"
+  },
+  "submit": {
+    "title": "Подать обращение",
+    "subtitle": "Опишите проблему",
+    "field_title": "Заголовок",
+    "field_title_placeholder": "Кратко опишите проблему",
+    "field_description": "Подробное описание",
+    "field_description_placeholder": "Опишите проблему подробно...",
+    "field_category": "Категория",
+    "field_location": "Адрес / район",
+    "field_location_placeholder": "Например: Алматы, Бостандыкский район",
+    "field_photos": "Фотографии",
+    "field_photos_hint": "Нажмите или перетащите фото для загрузки",
+    "field_photos_limit": "PNG, JPG · максимум {max} фото",
+    "field_anonymous": "Подать анонимно",
+    "field_anonymous_hint": "Ваше имя будет скрыто",
+    "submit_btn": "Отправить",
+    "submitting": "Отправка...",
+    "error_empty": "Заполните заголовок и описание",
+    "success": "Ваше обращение успешно отправлено!"
+  },
+  "auth": {
+    "login_title": "Вход",
+    "login_sub": "Войдите на портал обращений",
+    "register_title": "Регистрация",
+    "register_sub": "Создайте новый аккаунт",
+    "email": "Email",
+    "password": "Пароль",
+    "name": "Имя и фамилия",
+    "login_btn": "Войти",
+    "register_btn": "Зарегистрироваться",
+    "no_account": "Нет аккаунта?",
+    "has_account": "Уже есть аккаунт?",
+    "register_link": "Зарегистрируйтесь",
+    "login_link": "Войдите",
+    "error_invalid": "Неверный email или пароль",
+    "error_password_len": "Пароль должен содержать минимум 6 символов"
+  },
+  "cabinet": {
+    "title": "Личный кабинет",
+    "my_complaints": "Мои обращения",
+    "empty": "У вас нет обращений",
+    "submit_first": "Подать первое обращение",
+    "stat_total": "Всего",
+    "stat_pending": "В работе",
+    "stat_resolved": "Решено"
+  },
+  "admin": {
+    "title": "Панель администратора",
+    "all_complaints": "Все обращения",
+    "change_status": "Изменить статус",
+    "change_success": "Статус успешно изменен",
+    "add_report": "Добавить отчёт",
+    "report_text": "Текст отчёта",
+    "report_placeholder": "Отчет о выполненной работе...",
+    "report_photos": "Фото отчёта",
+    "save": "Сохранить",
+    "search": "Поиск...",
+    "filter_status": "По статусу",
+    "table_title": "Заголовок",
+    "table_category": "Категория",
+    "table_status": "Статус",
+    "table_votes": "Голоса",
+    "table_author": "Автор",
+    "table_date": "Дата",
+    "table_empty": "Обращений нет"
+  },
+  "errors": {
+    "not_found": "Страница не найдена",
+    "unauthorized": "Нет доступа",
+    "generic": "Произошла ошибка"
+  },
+  "time": {
+    "ago_s": "{s}с назад",
+    "ago_m": "{m}м назад",
+    "ago_h": "{h}ч назад",
+    "ago_d": "{d}д назад"
+  }
+}

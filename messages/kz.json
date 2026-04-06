@@ -1,0 +1,139 @@
+{
+  "nav": {
+    "feed": "Арыздар",
+    "submit": "Арыз беру",
+    "cabinet": "Жеке кабинет",
+    "admin": "Әкімші",
+    "login": "Кіру",
+    "register": "Тіркелу",
+    "logout": "Шығу",
+    "logo": "Шағым"
+  },
+  "hero": {
+    "title": "Азаматтарды тыңдаймыз",
+    "subtitle": "Мәселелеріңізді жеткізіңіз — шешім табамыз",
+    "eyebrow": "Шағым порталы — Қазақстан",
+    "cta": "Арыз беру",
+    "stats_complaints": "Арыз",
+    "stats_resolved": "Шешілді",
+    "stats_votes": "Дауыс",
+    "usp_1": "Ашықтылық",
+    "usp_2": "Дауыс бойынша рейтинг",
+    "usp_3": "Орындалу туралы"
+  },
+  "feed": {
+    "title": "Барлық арыздар",
+    "sort_new": "Жаңа",
+    "sort_top": "Үздік",
+    "sort_resolved": "Шешілген",
+    "filter_all": "Барлығы",
+    "empty": "Арыздар жоқ",
+    "load_more": "Тағы жүктеу"
+  },
+  "categories": {
+    "all": "Барлық санаттар",
+    "road": "Жол",
+    "housing": "ТКШ",
+    "ecology": "Экология",
+    "safety": "Қауіпсіздік",
+    "education": "Білім",
+    "other": "Басқа"
+  },
+  "status": {
+    "PENDING": "Күтілуде",
+    "ACCEPTED": "Қабылданды",
+    "IN_PROGRESS": "Қаралуда",
+    "RESOLVED": "Шешілді",
+    "CANCELLED": "Бас тартылды"
+  },
+  "complaint": {
+    "votes": "дауыс",
+    "vote": "Дауыс беру",
+    "voted": "Дауыс бердіңіз",
+    "comments": "Пікірлер",
+    "anonymous": "Анонимді",
+    "share": "Бөлісу",
+    "timeline": "Іс-шаралар тарихы",
+    "location": "Орналасқан жері",
+    "category": "Санат",
+    "submitted_lbl": "Жіберілді",
+    "submitted": "жіберді"
+  },
+  "submit": {
+    "title": "Арыз беру",
+    "subtitle": "Мәселені сипаттаңыз",
+    "field_title": "Тақырып",
+    "field_title_placeholder": "Мәселені қысқаша сипаттаңыз",
+    "field_description": "Толық сипаттама",
+    "field_description_placeholder": "Мәселені толық жазыңыз...",
+    "field_category": "Санат",
+    "field_location": "Мекенжай / аудан",
+    "field_location_placeholder": "Мысалы: Алматы, Бостандық ауданы",
+    "field_photos": "Фотолар",
+    "field_photos_hint": "Сурет жүктеу үшін басыңыз немесе сүйреңіз",
+    "field_photos_limit": "PNG, JPG · ең көбі {max} фото",
+    "field_anonymous": "Анонимді жіберу",
+    "field_anonymous_hint": "Аты-жөніңіз жасырылады",
+    "submit_btn": "Жіберу",
+    "submitting": "Жіберілуде...",
+    "error_empty": "Тақырып пен сипаттаманы толтырыңыз",
+    "success": "Арызыңыз сәтті жіберілді!"
+  },
+  "auth": {
+    "login_title": "Кіру",
+    "login_sub": "Шағым порталына кіріңіз",
+    "register_title": "Тіркелу",
+    "register_sub": "Жаңа аккаунт жасаңыз",
+    "email": "Email",
+    "password": "Құпия сөз",
+    "name": "Аты-жөні",
+    "login_btn": "Кіру",
+    "register_btn": "Тіркелу",
+    "no_account": "Аккаунт жоқ па?",
+    "has_account": "Аккаунт бар ма?",
+    "register_link": "Тіркелу",
+    "login_link": "Кіру",
+    "error_invalid": "Email немесе құпия сөз қате",
+    "error_password_len": "Құпия сөз кемінде 6 символ болуы керек"
+  },
+  "cabinet": {
+    "title": "Жеке кабинет",
+    "my_complaints": "Менің арыздарым",
+    "empty": "Сізде арыз жоқ",
+    "submit_first": "Алғашқы арызды беру",
+    "stat_total": "Жалпы",
+    "stat_pending": "Қаралуда",
+    "stat_resolved": "Шешілді"
+  },
+  "admin": {
+    "title": "Әкімші панелі",
+    "all_complaints": "Барлық арыздар",
+    "change_status": "Мәртебені өзгерту",
+    "change_success": "Мәртебе сәтті өзгертілді",
+    "add_report": "Есеп қосу",
+    "report_text": "Есеп мәтіні",
+    "report_placeholder": "Орындалған жұмыс туралы есеп...",
+    "report_photos": "Есеп фотолары",
+    "save": "Сақтау",
+    "search": "Іздеу...",
+    "filter_status": "Мәртебе бойынша",
+    "table_title": "Тақырып",
+    "table_category": "Санат",
+    "table_status": "Мәртебе",
+    "table_votes": "Дауыс",
+    "table_author": "Автор",
+    "table_date": "Күні",
+    "table_empty": "Арыздар жоқ"
+  },
+  "errors": {
+    "not_found": "Бет табылмады",
+    "unauthorized": "Рұқсат жоқ",
+    "generic": "Қате пайда болды"
+  },
+  "time": {
+    "ago_s": "{s}с бұрын",
+    "ago_m": "{m}м бұрын",
+    "ago_h": "{h}с бұрын",
+    "ago_d": "{d}к бұрын"
+  }
+}
