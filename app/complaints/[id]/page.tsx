@@ -4,10 +4,17 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { StatusBadge } from "@/components/complaint/StatusBadge";
 import { VoteButton } from "@/components/complaint/VoteButton";
+import { CommentForm } from "@/components/complaint/CommentForm";
 import { Icon, IconName } from "@/components/ui/Icon";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
+
+const ComplaintMap = dynamic(() => import("@/components/complaint/ComplaintMap"), {
+  ssr: false,
+  loading: () => <div className="map-placeholder" style={{ height: 250, background: "var(--bg-2)", borderRadius: "var(--radius-md)", marginTop: 16 }} />,
+});
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -19,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 function fmtDate(d: Date, locale: string) {
   return new Date(d).toLocaleDateString(locale === "kz" ? "kk-KZ" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
 }
+
 function timeAgo(d: Date, t: (key: string, values?: any) => string): string {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
   if (s < 60) return t("time.ago_s", { s });
@@ -35,7 +43,7 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const t = await getTranslations();
   const session = await auth();
-  const locale = (await cookies()).get("locale")?.value || "ru";
+  const locale = (await (await cookies()).get("locale"))?.value || "ru";
   const userId = session?.user?.id;
 
   const complaint = await prisma.complaint.findUnique({
@@ -49,7 +57,7 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
       },
       comments: {
         include: { author: { select: { name: true } } },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
       },
     },
   });
@@ -60,110 +68,127 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
     ? !!(await prisma.vote.findUnique({ where: { userId_complaintId: { userId, complaintId: id } } }))
     : false;
 
+  const CATEGORY_ICONS: Record<string, IconName> = {
+    road: "road", housing: "home", ecology: "leaf",
+    safety: "shield", education: "book", other: "file",
+  };
+
+  const catIcon = CATEGORY_ICONS[complaint.category] ?? "file";
+
   return (
-    <div className="container page anim-up" style={{ maxWidth: 900 }}>
+    <div className="container page anim-up" style={{ maxWidth: 1000 }}>
       {/* Breadcrumb */}
-      <nav style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 28, fontSize: 12.5, color: "var(--text-4)" }}>
-        <Link href="/" style={{ color: "var(--text-4)", display: "flex", alignItems: "center", gap: 4 }}>
-          <Icon name="grid" size={12} /> {t("nav.feed")}
+      <nav style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 28, fontSize: 13, color: "var(--text-4)" }}>
+        <Link href="/" style={{ color: "var(--text-4)", display: "flex", alignItems: "center", gap: 6 }}>
+          <Icon name="grid" size={14} /> {t("nav.feed")}
         </Link>
-        <Icon name="chevronRight" size={11} />
+        <Icon name="chevronRight" size={12} />
         <span style={{ color: "var(--text-3)" }}>#{id.slice(0, 8)}</span>
       </nav>
 
-      <div className="two-col">
+      <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 32 }}>
         {/* Left — main */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Header */}
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
             <VoteButton
               complaintId={complaint.id}
-              initialCount={complaint._count.votes}
+              initialVotes={complaint._count.votes}
               initialVoted={votedByMe}
-              isLoggedIn={!!session}
-              size="large"
             />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ fontSize: 21, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.3, marginBottom: 10 }}>
+              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.2, marginBottom: 12 }}>
                 {complaint.title}
               </h1>
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                 <StatusBadge status={complaint.status} />
-                <span className="badge badge-neutral">
-                  <Icon name={
-                    (({ road: "road", housing: "home", ecology: "leaf",
-                      safety: "shield", education: "book", other: "file" } as Record<string, IconName>)[complaint.category] || "file") as IconName
-                  } size={11} />
+                <span className="badge badge-neutral" style={{ gap: 4 }}>
+                  <Icon name={catIcon} size={11} />
                   {t(`categories.${complaint.category}` as any)}
                 </span>
                 {complaint.location && (
-                  <span className="badge badge-neutral">
+                  <span className="badge badge-neutral" style={{ gap: 4 }}>
                     <Icon name="mapPin" size={11} />
                     {complaint.location}
                   </span>
                 )}
-                <span className="badge badge-neutral">
+                <span className="badge badge-neutral" style={{ gap: 4 }}>
                   <Icon name="user" size={11} />
-                  {complaint.isAnonymous ? t("complaint.anonymous") : complaint.author.name}
-                </span>
-                <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-4)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <Icon name="calendar" size={12} />
-                  {fmtDate(complaint.createdAt, locale)}
+                  {complaint.isAnonymous ? t("complaint.anonymous") : (complaint.author.name || "User")}
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* Description */}
-          <div className="card" style={{ padding: "20px 22px" }}>
-            <p style={{ fontSize: 14.5, lineHeight: 1.75, color: "var(--text-2)", whiteSpace: "pre-wrap" }}>
-              {complaint.description}
-            </p>
           </div>
 
           {/* Photos */}
           {complaint.images.length > 0 && (
             <div className="card" style={{ padding: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-4)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-                {t("submit.field_photos")}
-              </p>
-              <div className="photo-grid">
+               <div className="photo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                 {complaint.images.map((img, i) => (
-                  <img key={i} src={img} alt="" />
+                  <img key={i} src={img} alt="" style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Comments */}
-          {complaint.comments.length > 0 && (
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-3)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                <Icon name="info" size={13} />
-                {t("complaint.comments")} · {complaint.comments.length}
+          {/* Description */}
+          <div className="card" style={{ padding: "24px 28px" }}>
+            <p style={{ fontSize: 16, lineHeight: 1.8, color: "var(--text-2)", whiteSpace: "pre-wrap" }}>
+              {complaint.description}
+            </p>
+          </div>
+
+          {/* Map */}
+          {(complaint as any).latitude && (complaint as any).longitude && (
+            <div className="card" style={{ padding: 16 }}>
+               <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+                {t("complaint.location")}
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {complaint.comments.map((c) => (
-                  <div key={c.id} className="card" style={{ padding: "12px 16px", display: "flex", gap: 12 }}>
-                    <div className="avatar avatar-sm">{(c.author.name ?? "?")[0]}</div>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontWeight: 600, fontSize: 12.5 }}>{c.author.name}</span>
-                        <span style={{ fontSize: 11.5, color: "var(--text-4)" }}>{timeAgo(c.createdAt, t)}</span>
-                      </div>
-                      <p style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--text-2)" }}>{c.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ComplaintMap lat={(complaint as any).latitude} lng={(complaint as any).longitude} />
             </div>
           )}
+
+          {/* Comments Section */}
+          <div className="comments-section">
+            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <Icon name="info" size={18} />
+              {t("complaint.comments")} <span style={{ opacity: 0.5 }}>({complaint.comments.length})</span>
+            </h3>
+
+            {session ? (
+              <CommentForm complaintId={id} />
+            ) : (
+              <div className="card" style={{ padding: 20, textAlign: "center", background: "var(--bg-2)" }}>
+                <p style={{ fontSize: 14, color: "var(--text-3)", marginBottom: 12 }}>
+                  {t("complaint.login_to_comment") || "Войдите, чтобы оставить комментарий"}
+                </p>
+                <Link href="/auth/login" className="btn btn-secondary btn-sm">{t("nav.login")}</Link>
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 24 }}>
+              {complaint.comments.map((c) => (
+                <div key={c.id} className="card" style={{ padding: "16px 20px", display: "flex", gap: 16 }}>
+                  <div className="avatar" style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--accent-low)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
+                    {(c.author.name ?? "U")[0].toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>{c.author.name || "User"}</span>
+                      <span style={{ fontSize: 12, color: "var(--text-4)" }}>{timeAgo(c.createdAt, t)}</span>
+                    </div>
+                    <p style={{ fontSize: 14.5, lineHeight: 1.6, color: "var(--text-2)" }}>{c.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right — timeline */}
         <div className="sticky-sidebar">
-          <div className="card" style={{ padding: "18px 20px" }}>
-            <p style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-4)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 18 }}>
+          <div className="card" style={{ padding: "20px 24px" }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 20 }}>
               {t("complaint.timeline")}
             </p>
 
@@ -176,10 +201,10 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
                 </div>
                 <div className="timeline-body">
                   <div className="timeline-header">
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>{t("complaint.submitted_lbl")}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{t("complaint.submitted_lbl")}</span>
                     <span className="timeline-date">{timeAgo(complaint.createdAt, t)}</span>
                   </div>
-                  <p style={{ fontSize: 11.5, color: "var(--text-4)" }}>{fmtDate(complaint.createdAt, locale)}</p>
+                  <p style={{ fontSize: 12, color: "var(--text-4)" }}>{fmtDate(complaint.createdAt, locale)}</p>
                 </div>
               </div>
 
@@ -195,16 +220,20 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
                       <span className="timeline-date">{timeAgo(log.createdAt, t)}</span>
                     </div>
                     {log.comment && (
-                      <p style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 6, lineHeight: 1.5 }}>{log.comment}</p>
+                      <p style={{ fontSize: 13, color: "var(--text-3)", marginTop: 8, lineHeight: 1.6 }}>{log.comment}</p>
                     )}
-                    {log.changedBy.role === "ADMIN" && (
-                      <p style={{ fontSize: 11, color: "var(--text-4)", marginTop: 4 }}>🏛️ {log.changedBy.name}</p>
-                    )}
-                    {log.images?.length > 0 && (
-                      <div className="photo-grid" style={{ marginTop: 8 }}>
-                        {log.images.map((img: string, j: number) => <img key={j} src={img} alt="" />)}
+                    {log.images && log.images.length > 0 && (
+                      <div className="photo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 8, marginTop: 12 }}>
+                        {log.images.map((img, i) => (
+                          <img key={i} src={img} alt="" style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }} />
+                        ))}
                       </div>
                     )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                       <span style={{ fontSize: 11.5, color: "var(--text-4)" }}>
+                        🏛️ {log.changedBy.role === "ADMIN" ? "Администратор" : "Пользователь"}: {log.changedBy.name}
+                       </span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -212,6 +241,73 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .sticky-sidebar {
+          position: sticky;
+          top: calc(var(--header-h) + 32px);
+          height: fit-content;
+        }
+        @media (max-width: 900px) {
+          .two-col {
+            grid-template-columns: 1fr !important;
+          }
+          .sticky-sidebar {
+            position: static;
+          }
+        }
+        .timeline {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+        .timeline-item {
+          display: flex;
+          gap: 16px;
+          padding-bottom: 24px;
+          position: relative;
+        }
+        .timeline-item:last-child {
+          padding-bottom: 0;
+        }
+        .timeline-line {
+          position: absolute;
+          left: 11px;
+          top: 24px;
+          bottom: -24px;
+          width: 2px;
+          background: var(--border);
+        }
+        .timeline-item:last-child .timeline-line {
+          display: none;
+        }
+        .timeline-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: var(--bg-3);
+          border: 2px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+          flex-shrink: 0;
+        }
+        .timeline-body {
+          flex: 1;
+          padding-top: 2px;
+        }
+        .timeline-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2px;
+        }
+        .timeline-date {
+          font-size: 11.5px;
+          color: var(--text-4);
+        }
+      `}</style>
     </div>
   );
 }

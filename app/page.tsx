@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { ComplaintCard } from "@/components/complaint/ComplaintCard";
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
-import { ComplaintStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string; category?: string }> }) {
   const t = await getTranslations();

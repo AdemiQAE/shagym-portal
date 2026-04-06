@@ -57,7 +57,10 @@
     "location": "Орналасқан жері",
     "category": "Санат",
     "submitted_lbl": "Жіберілді",
-    "submitted": "жіберді"
+    "submitted": "жіберді",
+    "comments_placeholder": "Пікіріңізді жазыңыз...",
+    "comments_submit": "Жіберу",
+    "login_to_comment": "Пікір қалдыру үшін жүйеге кіріңіз"
   },
   "submit": {
     "title": "Арыз беру",
@@ -76,8 +79,10 @@
     "field_anonymous_hint": "Аты-жөніңіз жасырылады",
     "submit_btn": "Жіберу",
     "submitting": "Жіберілуде...",
+    "field_map": "Картадағы орны",
+    "field_map_hint": "Белгі қою үшін картаны басыңыз",
     "error_empty": "Тақырып пен сипаттаманы толтырыңыз",
-    "success": "Арызыңыз сәтті жіберілді!"
+    "success": "Сәтті сақталды"
   },
   "auth": {
     "login_title": "Кіру",

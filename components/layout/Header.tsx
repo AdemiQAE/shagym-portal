@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { Icon } from "@/components/ui/Icon";
+import { Logo } from "@/components/ui/Logo";
+import { ThemeSwitcher } from "./ThemeSwitcher";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface HeaderProps {
   session: { user?: { name?: string | null; email?: string | null; role?: string } } | null;
@@ -17,46 +21,42 @@ export function Header({ session, locale }: HeaderProps) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
 
-  const toggleTheme = () => {
-    const cur = document.documentElement.getAttribute("data-theme");
-    const next = cur === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  };
+  // Close menu on navigation
+  useEffect(() => {
+    setOpen(false);
+  }, [path]);
 
-  const toggleLang = () => {
-    const next = locale === "kz" ? "ru" : "kz";
-    document.cookie = `locale=${next}; path=/; max-age=31536000`;
-    window.location.reload();
-  };
+  // Lock scroll when menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }, [open]);
 
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
 
   const links = [
-    { href: "/",        label: t("feed") },
-    { href: "/submit",  label: t("submit") },
-    ...(user    ? [{ href: "/cabinet", label: t("cabinet") }] : []),
-    ...(isAdmin ? [{ href: "/admin",   label: t("admin")   }] : []),
+    { href: "/", label: t("feed"), icon: "grid" },
+    { href: "/submit", label: t("submit"), icon: "plus" },
+    ...(user ? [{ href: "/cabinet", label: t("cabinet"), icon: "user" }] : []),
+    ...(isAdmin ? [{ href: "/admin", label: t("admin"), icon: "shield" }] : []),
   ];
 
   return (
     <header className="header">
       <div className="container header-inner">
-        <Link href="/" className="header-logo">
-          <span className="header-logo-mark">
-            <Icon name="building" size={20} />
-          </span>
-          <span className="header-logo-text">{t("logo")}</span>
-        </Link>
+        <Logo />
 
-        <nav className={`header-nav${open ? " open" : ""}`}>
+        {/* Desktop Nav */}
+        <nav className="header-nav-desktop">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               className={`header-nav-link${path === l.href ? " active" : ""}`}
-              onClick={() => setOpen(false)}
             >
               {l.label}
             </Link>
@@ -64,40 +64,122 @@ export function Header({ session, locale }: HeaderProps) {
         </nav>
 
         <div className="header-end">
-          <button className="lang-btn" onClick={toggleLang} title="Язык / Тіл">
-            {locale === "kz" ? "ҚАЗ" : "РУС"}
-          </button>
+          <div className="header-controls">
+            <LanguageSwitcher locale={locale} />
+            <ThemeSwitcher />
+          </div>
 
-          <button className="icon-btn" onClick={toggleTheme} title="Тема">
-            <Icon name="sun" size={15} />
-          </button>
-
-          {user ? (
-            <>
-              <div className="header-avatar">
-                {(user.name ?? user.email ?? "U")[0].toUpperCase()}
+          <div className="header-auth-desktop">
+            {user ? (
+              <div className="header-user">
+                <div className="header-avatar" title={user.name ?? user.email ?? "User"}>
+                  {(user.name ?? user.email ?? "U")[0].toUpperCase()}
+                </div>
+                <button
+                  className="btn btn-ghost btn-icon"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  title={t("logout")}
+                >
+                  <Icon name="logOut" size={16} />
+                </button>
               </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                style={{ gap: 5 }}
-              >
-                <Icon name="logOut" size={13} />
-                {t("logout")}
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/auth/login" className="btn btn-ghost btn-sm">{t("login")}</Link>
-              <Link href="/auth/register" className="btn btn-secondary btn-sm">{t("register")}</Link>
-            </>
-          )}
+            ) : (
+              <div className="header-auth-btns">
+                <Link href="/auth/login" className="btn btn-ghost btn-sm">{t("login")}</Link>
+                <Link href="/auth/register" className="btn btn-primary btn-sm">{t("register")}</Link>
+              </div>
+            )}
+          </div>
 
-          <button className="header-hamburger" onClick={() => setOpen(!open)}>
-            <Icon name={open ? "close" : "menu"} size={18} />
+          <button 
+            className={`header-hamburger${open ? " active" : ""}`} 
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            <div className="hamburger-box">
+              <div className="hamburger-inner" />
+            </div>
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              className="mobile-menu-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              className="mobile-menu"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            >
+              <div className="mobile-menu-inner">
+                <div className="mobile-menu-header">
+                  <Logo />
+                  <button className="icon-btn" onClick={() => setOpen(false)}>
+                    <Icon name="close" size={20} />
+                  </button>
+                </div>
+
+                <div className="mobile-menu-nav">
+                  {links.map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      className={`mobile-nav-link${path === l.href ? " active" : ""}`}
+                    >
+                      <Icon name={l.icon as any} size={18} />
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="mobile-menu-footer">
+                  <div className="mobile-menu-row">
+                    <span>{t("logout")} / {t("login")}</span>
+                    <div className="header-controls">
+                      <LanguageSwitcher locale={locale} />
+                      <ThemeSwitcher />
+                    </div>
+                  </div>
+                  
+                  {user ? (
+                    <div className="mobile-user-info">
+                      <div className="header-avatar">
+                        {(user.name ?? user.email ?? "U")[0].toUpperCase()}
+                      </div>
+                      <div className="user-details">
+                        <p className="user-name">{user.name ?? "—"}</p>
+                        <p className="user-email">{user.email}</p>
+                      </div>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        style={{ marginLeft: "auto" }}
+                      >
+                        {t("logout")}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mobile-auth-btns">
+                      <Link href="/auth/login" className="btn btn-ghost">{t("login")}</Link>
+                      <Link href="/auth/register" className="btn btn-primary">{t("register")}</Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

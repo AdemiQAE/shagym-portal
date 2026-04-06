@@ -89,6 +89,8 @@ model Complaint {
   description String          @db.Text
   category    String
   location    String?
+  latitude    Float?
+  longitude   Float?
   status      ComplaintStatus @default(PENDING)
   isAnonymous Boolean         @default(false)
   images      String[]

@@ -25,9 +25,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <Header session={session} locale={locale} />
-            <main className="page">
+            <main>
               {children}
             </main>
           </NextIntlClientProvider>

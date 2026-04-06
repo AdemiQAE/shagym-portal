@@ -247,7 +247,13 @@ interface IconProps {
   style?: React.CSSProperties;
 }
 
-export function Icon({ name, size = 16, className = "", style }: IconProps) {
+/**
+ * Переиспользуемый компонент иконок на основе SVG.
+ * @param {IconName} name Название иконки
+ * @param {number} size Размер (ширина и высота) в пикселях
+ * @param {string} className Дополнительные CSS классы
+ */
+export function Icon({ name, size = 20, className = "", style = {} }: IconProps) {
   return (
     <span
       className={`icon ${className}`}

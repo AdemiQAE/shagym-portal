@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shagym Portal (Шағым Порталы)
 
-## Getting Started
+Веб-портал для подачи и отслеживания жалоб граждан Казахстана. Платформа позволяет жителям сообщать о проблемах в их районе, голосовать за важные обращения и следить за процессом их решения в реальном времени.
 
-First, run the development server:
+**Автор:** Студент группы [Ваша группа] — [Ваше Имя]
 
+## Стек технологий
+
+- **Frontend:** Next.js 15+ (App Router), React 19, Tailwind CSS, Framer Motion
+- **Backend:** Next.js API Routes, Prisma ORM
+- **Database:** PostgreSQL (Neon Serverless)
+- **Auth:** NextAuth.js v5 (Beta)
+- **i18n:** next-intl (Поддержка русского и казахского языков)
+- **Maps:** Leaflet / React-Leaflet
+- **Icons:** Lucide React
+
+## Инструкция по установке
+
+### 1. Клонирование репозитория
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/AdemiQAE/shagym-portal.git
+cd shagym-portal
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Установка зависимостей
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Настройка переменных окружения
+Создайте файл `.env` в корне проекта и добавьте следующие переменные:
+```env
+# Database
+DATABASE_URL="postgresql://user:password@host:port/dbname?sslmode=require"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# NextAuth
+NEXTAUTH_SECRET="your-secret-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-## Learn More
+### 4. Подготовка базы данных
+```bash
+npx prisma generate
+npx prisma db push
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Запуск проекта
+```bash
+npm run dev
+```
+Проект будет доступен по адресу [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Основные API эндпоинты
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Авторизация
+- `POST /api/auth/register` — Регистрация нового пользователя.
 
-## Deploy on Vercel
+### Жалобы (Complaints)
+- `GET /api/complaints` — Получение списка жалоб с фильтрацией и сортировкой.
+- `POST /api/complaints` — Создание новой жалобы (требуется авторизация).
+- `GET /api/complaints/[id]` — Получение деталей конкретной жалобы.
+- `PATCH /api/complaints/[id]` — Обновление статуса жалобы (только для ADMIN).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Голосование и Комментарии
+- `POST /api/votes` — Добавление голоса (Upvote).
+- `DELETE /api/votes` — Удаление голоса (Unvote).
+- `POST /api/complaints/[id]/comments` — Добавление комментария к жалобе.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Роли пользователей
+- **USER:** Может подавать жалобы, голосовать, оставлять комментарии и просматривать статус своих обращений в личном кабинете.
+- **ADMIN:** Имеет доступ к панели `/admin`, может менять статусы жалоб и оставлять официальные ответы.
+
+## Особенности реализации
+- **Dark Mode:** Поддержка светлой и темной тем с сохранением выбора пользователя.
+- **Optimistic UI:** Голосование происходит мгновенно на клиенте, не дожидаясь ответа сервера.
+- **Base64 Images:** Изображения сохраняются напрямую в БД, что упрощает деплой.
+- **Timeline:** Прозрачная история изменений статуса для каждой жалобы.

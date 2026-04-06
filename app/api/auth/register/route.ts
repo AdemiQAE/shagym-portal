@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 
+/**
+ * @api {post} /api/auth/register Регистрация нового пользователя
+ * @param {string} name Имя пользователя (необязательно)
+ * @param {string} email Email пользователя
+ * @param {string} password Пароль
+ */
 export async function POST(req: NextRequest) {
   const { name, email, password } = await req.json();
 

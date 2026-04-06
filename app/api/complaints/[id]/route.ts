@@ -3,6 +3,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ComplaintStatus } from "@prisma/client";
 
+/**
+ * @api {get} /api/complaints/[id] Получение деталей жалобы
+ * @param {string} id ID жалобы
+ */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const complaint = await prisma.complaint.findUnique({
@@ -25,6 +29,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json(complaint);
 }
 
+/**
+ * @api {patch} /api/complaints/[id] Обновление статуса жалобы
+ * @auth Только для ADMIN
+ * @param {string} status Новый статус (ComplaintStatus)
+ * @param {string} comment Комментарий админа
+ * @param {string[]} images Список Base64 изображений отчета
+ */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   const { id } = await params;

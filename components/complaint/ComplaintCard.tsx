@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { StatusBadge } from "./StatusBadge";
+import { VoteButton } from "./VoteButton";
 import { Icon } from "@/components/ui/Icon";
 import type { IconName } from "@/components/ui/Icon";
 
@@ -14,7 +15,7 @@ type Complaint = {
   isAnonymous: boolean;
   images: string[];
   votesCount: number;
-  createdAt: Date;
+  createdAt: Date | string;
   author: { name?: string | null };
   _count?: { votes: number };
 };
@@ -24,8 +25,9 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   safety: "shield", education: "book", other: "file",
 };
 
-function timeAgo(d: Date, t: (key: string, values?: any) => string): string {
-  const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+function timeAgo(d: Date | string, t: (key: string, values?: any) => string): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
   if (s < 60) return t("time.ago_s", { s });
   if (s < 3600) return t("time.ago_m", { m: Math.floor(s / 60) });
   if (s < 86400) return t("time.ago_h", { h: Math.floor(s / 3600) });
@@ -47,10 +49,11 @@ export function ComplaintCard({ complaint, votedByMe }: ComplaintCardProps) {
       <div className={`card card-interactive complaint-card cat-border-${complaint.category}`}>
         {/* Vote */}
         <div className="vote-col">
-          <div className={`vote-control${votedByMe ? " voted" : ""}`} style={{ pointerEvents: "none" }}>
-            <Icon name="arrowUp" size={13} />
-            <span>{votes}</span>
-          </div>
+          <VoteButton 
+            complaintId={complaint.id} 
+            initialVotes={votes} 
+            initialVoted={!!votedByMe} 
+          />
         </div>
 
         {/* Body */}
