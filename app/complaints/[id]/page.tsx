@@ -9,12 +9,7 @@ import { Icon, IconName } from "@/components/ui/Icon";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-const ComplaintMap = dynamic(() => import("@/components/complaint/ComplaintMap"), {
-  ssr: false,
-  loading: () => <div className="map-placeholder" style={{ height: 250, background: "var(--bg-2)", borderRadius: "var(--radius-md)", marginTop: 16 }} />,
-});
+import ComplaintMapWrapper from "@/components/complaint/ComplaintMapWrapper";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -144,7 +139,7 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
                 {t("complaint.location")}
               </p>
-              <ComplaintMap lat={(complaint as any).latitude} lng={(complaint as any).longitude} />
+              <ComplaintMapWrapper lat={(complaint as any).latitude} lng={(complaint as any).longitude} />
             </div>
           )}
 
@@ -241,73 +236,6 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .sticky-sidebar {
-          position: sticky;
-          top: calc(var(--header-h) + 32px);
-          height: fit-content;
-        }
-        @media (max-width: 900px) {
-          .two-col {
-            grid-template-columns: 1fr !important;
-          }
-          .sticky-sidebar {
-            position: static;
-          }
-        }
-        .timeline {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-        .timeline-item {
-          display: flex;
-          gap: 16px;
-          padding-bottom: 24px;
-          position: relative;
-        }
-        .timeline-item:last-child {
-          padding-bottom: 0;
-        }
-        .timeline-line {
-          position: absolute;
-          left: 11px;
-          top: 24px;
-          bottom: -24px;
-          width: 2px;
-          background: var(--border);
-        }
-        .timeline-item:last-child .timeline-line {
-          display: none;
-        }
-        .timeline-icon {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: var(--bg-3);
-          border: 2px solid var(--border);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1;
-          flex-shrink: 0;
-        }
-        .timeline-body {
-          flex: 1;
-          padding-top: 2px;
-        }
-        .timeline-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2px;
-        }
-        .timeline-date {
-          font-size: 11.5px;
-          color: var(--text-4);
-        }
-      `}</style>
     </div>
   );
 }
