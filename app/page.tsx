@@ -23,29 +23,39 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     ? { createdAt: "desc" as const }
     : { votesCount: "desc" as const };
 
-  const [complaints, totalComplaints, resolvedCount, totalVotes] = await Promise.all([
-    prisma.complaint.findMany({
-      where,
-      orderBy,
-      take: 50,
-      include: {
-        author: { select: { name: true } },
-        _count: { select: { votes: true } },
-      },
-    }),
-    prisma.complaint.count(),
-    prisma.complaint.count({ where: { status: "RESOLVED" } }),
-    prisma.vote.count(),
-  ]);
+  let complaints: Awaited<ReturnType<typeof prisma.complaint.findMany>> = [];
+  let totalComplaints = 0;
+  let resolvedCount = 0;
+  let totalVotes = 0;
+  let userVoteIds = new Set<string>();
 
-  const userVoteIds = userId
-    ? new Set(
+  try {
+    [complaints, totalComplaints, resolvedCount, totalVotes] = await Promise.all([
+      prisma.complaint.findMany({
+        where,
+        orderBy,
+        take: 50,
+        include: {
+          author: { select: { name: true } },
+          _count: { select: { votes: true } },
+        },
+      }),
+      prisma.complaint.count(),
+      prisma.complaint.count({ where: { status: "RESOLVED" } }),
+      prisma.vote.count(),
+    ]);
+
+    if (userId && complaints.length > 0) {
+      userVoteIds = new Set(
         (await prisma.vote.findMany({
           where: { userId, complaintId: { in: complaints.map(c => c.id) } },
           select: { complaintId: true },
         })).map(v => v.complaintId)
-      )
-    : new Set<string>();
+      );
+    }
+  } catch (err) {
+    console.error("Failed to fetch complaints:", err);
+  }
 
   const categories = ["all", "road", "housing", "ecology", "safety", "education", "other"];
   const sorts = [

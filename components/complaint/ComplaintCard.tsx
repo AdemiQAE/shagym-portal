@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { StatusBadge } from "./StatusBadge";
 import { VoteButton } from "./VoteButton";
@@ -85,7 +86,14 @@ export function ComplaintCard({ complaint, votedByMe }: ComplaintCardProps) {
         {/* Thumb */}
         {complaint.images?.[0] && (
           <div className="complaint-thumb-wrap">
-            <img src={complaint.images[0]} alt="" className="complaint-thumb" />
+            <Image
+              src={complaint.images[0]}
+              alt={complaint.title}
+              width={72}
+              height={72}
+              className="complaint-thumb"
+              unoptimized={complaint.images[0].startsWith("data:")}
+            />
           </div>
         )}
       </div>

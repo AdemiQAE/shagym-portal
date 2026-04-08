@@ -9,22 +9,30 @@ import { prisma } from "@/lib/db";
  * @param {string} password Пароль
  */
 export async function POST(req: NextRequest) {
-  const { name, email, password } = await req.json();
+  try {
+    const { name, email, password } = await req.json();
 
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existing) {
+      return NextResponse.json({ error: "Email уже зарегистрирован / Email тіркелген" }, { status: 409 });
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+    const user = await prisma.user.create({
+      data: { name: name?.trim() || null, email: normalizedEmail, password: hashed },
+    });
+
+    return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
+  } catch (error) {
+    console.error("[REGISTER_POST]", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-
-  const normalizedEmail = email.toLowerCase().trim();
-  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (existing) {
-    return NextResponse.json({ error: "Email уже зарегистрирован / Email тіркелген" }, { status: 409 });
-  }
-
-  const hashed = await bcrypt.hash(password, 12);
-  const user = await prisma.user.create({
-    data: { name: name?.trim() || null, email: normalizedEmail, password: hashed },
-  });
-
-  return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
 }

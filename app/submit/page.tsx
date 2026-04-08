@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/Icon";
 import { ImageUploader } from "@/components/ui/ImageUploader";
 import dynamic from "next/dynamic";
+import { Toast } from "@/components/ui/Toast";
 
 const MapPicker = dynamic(() => import("@/components/ui/MapPicker"), {
   ssr: false,
@@ -29,7 +30,7 @@ export default function SubmitPage() {
     images: [] as string[],
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [success, setSuccess] = useState(false);
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
@@ -37,11 +38,11 @@ export default function SubmitPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.description.trim()) {
-      setError(t("submit.error_empty"));
+      setToast({ message: t("submit.error_empty"), type: "error" });
       return;
     }
     setLoading(true);
-    setError("");
+    setToast(null);
 
     try {
       const res = await fetch("/api/complaints", {
@@ -52,14 +53,15 @@ export default function SubmitPage() {
 
       if (!res.ok) {
         const d = await res.json();
-        throw new Error(d.error || "Failed to submit");
+        throw new Error(d.error || t("submit.error_generic"));
       }
 
       const data = await res.json();
       setSuccess(true);
+      setToast({ message: t("submit.success"), type: "success" });
       setTimeout(() => router.push(`/complaints/${data.id}`), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setToast({ message: err instanceof Error ? err.message : String(err), type: "error" });
       setLoading(false);
     }
   };
@@ -104,13 +106,6 @@ export default function SubmitPage() {
         </h1>
         <p style={{ fontSize: 14, color: "var(--text-3)" }}>{t("submit.subtitle")}</p>
       </div>
-
-      {error && (
-        <div className="alert alert-error" style={{ marginBottom: 20 }}>
-          <Icon name="warning" size={14} style={{ flexShrink: 0 }} />
-          {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {/* Title */}
@@ -208,7 +203,10 @@ export default function SubmitPage() {
           style={{ height: 48, fontSize: 16 }}
         >
           {loading ? (
-            <Icon name="loader" size={20} className="animate-spin" />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+              <Icon name="loader" size={20} className="animate-spin" />
+              {t("submit.submitting")}
+            </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
               <Icon name="send" size={18} />
@@ -217,6 +215,7 @@ export default function SubmitPage() {
           )}
         </button>
       </form>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

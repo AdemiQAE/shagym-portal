@@ -11,41 +11,49 @@ import { Prisma, ComplaintStatus } from "@prisma/client";
  * @query {string} search Поиск по заголовку и описанию
  */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const sort = searchParams.get("sort") ?? "top";
-  const category = searchParams.get("category");
-  const status = searchParams.get("status");
-  const search = searchParams.get("search");
+  try {
+    const { searchParams } = new URL(req.url);
+    const sort = searchParams.get("sort") ?? "top";
+    const category = searchParams.get("category");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
 
-  const where: Prisma.ComplaintWhereInput = {};
-  if (category && category !== "all") where.category = category;
-  if (status && status !== "all") {
-    // Basic validation for status enum
-    const validStatuses = Object.values(ComplaintStatus);
-    if (validStatuses.includes(status as ComplaintStatus)) {
-      where.status = status as ComplaintStatus;
+    const where: Prisma.ComplaintWhereInput = {};
+    if (category && category !== "all") where.category = category;
+    if (status && status !== "all") {
+      // Basic validation for status enum
+      const validStatuses = Object.values(ComplaintStatus);
+      if (validStatuses.includes(status as ComplaintStatus)) {
+        where.status = status as ComplaintStatus;
+      }
     }
+    if (search) where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ];
+
+    const orderBy = sort === "new"
+      ? { createdAt: "desc" as const }
+      : { votesCount: "desc" as const };
+
+    const complaints = await prisma.complaint.findMany({
+      where,
+      orderBy,
+      take: 50,
+      include: {
+        author: { select: { name: true } },
+        _count: { select: { votes: true } },
+      },
+    });
+
+    return NextResponse.json(complaints);
+  } catch (error) {
+    console.error("[COMPLAINTS_GET]", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-  if (search) where.OR = [
-    { title: { contains: search, mode: "insensitive" } },
-    { description: { contains: search, mode: "insensitive" } },
-  ];
-
-  const orderBy = sort === "new"
-    ? { createdAt: "desc" as const }
-    : { votesCount: "desc" as const };
-
-  const complaints = await prisma.complaint.findMany({
-    where,
-    orderBy,
-    take: 50,
-    include: {
-      author: { select: { name: true } },
-      _count: { select: { votes: true } },
-    },
-  });
-
-  return NextResponse.json(complaints);
 }
 
 /**

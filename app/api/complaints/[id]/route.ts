@@ -8,25 +8,30 @@ import { ComplaintStatus } from "@prisma/client";
  * @param {string} id ID жалобы
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const complaint = await prisma.complaint.findUnique({
-    where: { id },
-    include: {
-      author: { select: { name: true } },
-      _count: { select: { votes: true } },
-      statusLogs: {
-        include: { changedBy: { select: { name: true, role: true } } },
-        orderBy: { createdAt: "asc" },
+  try {
+    const { id } = await params;
+    const complaint = await prisma.complaint.findUnique({
+      where: { id },
+      include: {
+        author: { select: { name: true } },
+        _count: { select: { votes: true } },
+        statusLogs: {
+          include: { changedBy: { select: { name: true, role: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+        comments: {
+          include: { author: { select: { name: true } } },
+          orderBy: { createdAt: "asc" },
+        },
       },
-      comments: {
-        include: { author: { select: { name: true } } },
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
+    });
 
-  if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(complaint);
+    if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(complaint);
+  } catch (error) {
+    console.error("[COMPLAINT_GET]", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
 /**
@@ -37,41 +42,46 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
  * @param {string[]} images Список Base64 изображений отчета
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  const { id } = await params;
-  const userId = session?.user?.id;
-  const role = session?.user?.role;
+  try {
+    const session = await auth();
+    const { id } = await params;
+    const userId = session?.user?.id;
+    const role = session?.user?.role;
 
-  if (!session || !userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+
+    // Admin can change status
+    if (body.status && role === "ADMIN") {
+      const complaint = await prisma.complaint.findUnique({ where: { id } });
+      if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+      const [updated] = await prisma.$transaction([
+        prisma.complaint.update({
+          where: { id },
+          data: { status: body.status as ComplaintStatus },
+        }),
+        prisma.statusLog.create({
+          data: {
+            complaintId: id,
+            changedById: userId,
+            oldStatus: complaint.status,
+            newStatus: body.status as ComplaintStatus,
+            comment: body.comment ?? null,
+            images: body.images ?? [],
+          },
+        }),
+      ]);
+
+      return NextResponse.json(updated);
+    }
+
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  } catch (error) {
+    console.error("[COMPLAINT_PATCH]", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-
-  const body = await req.json();
-
-  // Admin can change status
-  if (body.status && role === "ADMIN") {
-    const complaint = await prisma.complaint.findUnique({ where: { id } });
-    if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const [updated] = await prisma.$transaction([
-      prisma.complaint.update({
-        where: { id },
-        data: { status: body.status as ComplaintStatus },
-      }),
-      prisma.statusLog.create({
-        data: {
-          complaintId: id,
-          changedById: userId,
-          oldStatus: complaint.status,
-          newStatus: body.status as ComplaintStatus,
-          comment: body.comment ?? null,
-          images: body.images ?? [],
-        },
-      }),
-    ]);
-
-    return NextResponse.json(updated);
-  }
-
-  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }

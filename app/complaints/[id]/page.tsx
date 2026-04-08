@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/complaint/StatusBadge";
 import { VoteButton } from "@/components/complaint/VoteButton";
 import { CommentForm } from "@/components/complaint/CommentForm";
 import { Icon, IconName } from "@/components/ui/Icon";
+import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
@@ -120,7 +121,15 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
             <div className="card" style={{ padding: 16 }}>
                <div className="photo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                 {complaint.images.map((img, i) => (
-                  <img key={i} src={img} alt="" style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }} />
+                  <Image
+                    key={i}
+                    src={img}
+                    alt={`${complaint.title} — фото ${i + 1}`}
+                    width={400}
+                    height={200}
+                    unoptimized={img.startsWith("data:")}
+                    style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}
+                  />
                 ))}
               </div>
             </div>
@@ -220,7 +229,15 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
                     {log.images && log.images.length > 0 && (
                       <div className="photo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 8, marginTop: 12 }}>
                         {log.images.map((img, i) => (
-                          <img key={i} src={img} alt="" style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }} />
+                          <Image
+                            key={i}
+                            src={img}
+                            alt={`Отчёт — фото ${i + 1}`}
+                            width={200}
+                            height={100}
+                            unoptimized={img.startsWith("data:")}
+                            style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}
+                          />
                         ))}
                       </div>
                     )}
