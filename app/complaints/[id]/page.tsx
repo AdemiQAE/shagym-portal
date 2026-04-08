@@ -12,6 +12,7 @@ import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import ComplaintMapWrapper from "@/components/complaint/ComplaintMapWrapper";
 
+/** Generates dynamic <title> and <meta description> for complaint detail pages. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const c = await prisma.complaint.findUnique({ where: { id }, select: { title: true, description: true } });
@@ -19,16 +20,26 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `${c.title} — Шағым`, description: c.description.slice(0, 160) };
 }
 
+/**
+ * Formats a date into a localized long-form string (e.g. "5 апреля 2025").
+ * @param d - Date to format
+ * @param locale - "kz" for Kazakh, anything else for Russian
+ */
 function fmtDate(d: Date, locale: string) {
   return new Date(d).toLocaleDateString(locale === "kz" ? "kk-KZ" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
 }
 
+/**
+ * Returns a localized relative time string (e.g. "5м назад").
+ * @param d - Date to compare against now
+ * @param t - next-intl translation function
+ */
 function timeAgo(d: Date, t: (key: string, values?: any) => string): string {
-  const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
-  if (s < 60) return t("time.ago_s", { s });
-  if (s < 3600) return t("time.ago_m", { m: Math.floor(s / 60) });
-  if (s < 86400) return t("time.ago_h", { h: Math.floor(s / 3600) });
-  return t("time.ago_d", { d: Math.floor(s / 86400) });
+  const seconds = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+  if (seconds < 60) return t("time.ago_s", { s: seconds });
+  if (seconds < 3600) return t("time.ago_m", { m: Math.floor(seconds / 60) });
+  if (seconds < 86400) return t("time.ago_h", { h: Math.floor(seconds / 3600) });
+  return t("time.ago_d", { d: Math.floor(seconds / 86400) });
 }
 
 const STATUS_ICON: Record<string, IconName> = {

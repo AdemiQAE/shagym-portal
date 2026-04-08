@@ -33,7 +33,8 @@ export default function SubmitPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+  /** Updates a single field in the complaint form state. */
+  const updateField = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +116,7 @@ export default function SubmitPage() {
             className="field-input" maxLength={200} required
             placeholder={t("submit.field_title_placeholder")}
             value={form.title}
-            onChange={e => set("title", e.target.value)}
+            onChange={e => updateField("title", e.target.value)}
           />
         </div>
 
@@ -126,7 +127,7 @@ export default function SubmitPage() {
             className="field-textarea" required
             placeholder={t("submit.field_description_placeholder")}
             value={form.description}
-            onChange={e => set("description", e.target.value)}
+            onChange={e => updateField("description", e.target.value)}
             rows={5}
             style={{ minHeight: 140 }}
           />
@@ -139,7 +140,7 @@ export default function SubmitPage() {
             <select
               className="field-select"
               value={form.category}
-              onChange={e => set("category", e.target.value)}
+              onChange={e => updateField("category", e.target.value)}
             >
               {CATEGORIES.map(c => (
                 <option key={c} value={c}>{t(`categories.${c}` as any)}</option>
@@ -152,7 +153,7 @@ export default function SubmitPage() {
               className="field-input"
               placeholder={t("submit.field_location_placeholder")}
               value={form.location}
-              onChange={e => set("location", e.target.value)}
+              onChange={e => updateField("location", e.target.value)}
             />
           </div>
         </div>
@@ -165,8 +166,8 @@ export default function SubmitPage() {
             lat={form.latitude || undefined}
             lng={form.longitude || undefined}
             onChange={(lat, lng) => {
-              set("latitude", lat);
-              set("longitude", lng);
+              updateField("latitude", lat);
+              updateField("longitude", lng);
             }}
           />
         </div>
@@ -176,7 +177,7 @@ export default function SubmitPage() {
           <label className="field-label">{t("submit.field_photos")}</label>
           <ImageUploader
             value={form.images}
-            onChange={val => set("images", val)}
+            onChange={val => updateField("images", val)}
             maxFiles={4}
           />
         </div>
@@ -186,7 +187,7 @@ export default function SubmitPage() {
           <input
             type="checkbox"
             checked={form.isAnonymous}
-            onChange={e => set("isAnonymous", e.target.checked)}
+            onChange={e => updateField("isAnonymous", e.target.checked)}
           />
           <div className="check-body">
             <div className="check-title" style={{ fontWeight: 600 }}>{t("submit.field_anonymous")}</div>

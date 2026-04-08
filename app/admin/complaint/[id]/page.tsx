@@ -4,8 +4,14 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { StatusBadge } from "@/components/complaint/StatusBadge";
 import { AdminComplaintForm } from "@/components/admin/AdminComplaintForm";
+import { ALLOWED_TRANSITIONS } from "@/lib/status-transitions";
 import Link from "next/link";
+import Image from "next/image";
 
+/**
+ * Formats a date into a full Russian datetime string (e.g. "5 апреля 2025, 14:30").
+ * @param d - Date to format
+ */
 function formatDate(d: Date) {
   return new Date(d).toLocaleString("ru-RU", {
     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
@@ -89,7 +95,7 @@ export default async function AdminComplaintDetailPage({
                 <div className="divider" />
                 <div className="photo-gallery">
                   {complaint.images.map((img, i) => (
-                    <img key={i} src={img} alt="" />
+                    <Image key={i} src={img} alt={`Photo ${i + 1}`} width={300} height={200} unoptimized={img.startsWith("data:")} style={{ objectFit: "cover" }} />
                   ))}
                 </div>
               </>
@@ -114,7 +120,7 @@ export default async function AdminComplaintDetailPage({
                     {log.images.length > 0 && (
                       <div className="photo-gallery" style={{ marginTop: 8 }}>
                         {log.images.map((img, i) => (
-                          <img key={i} src={img} alt="" />
+                          <Image key={i} src={img} alt={`Report photo ${i + 1}`} width={200} height={120} unoptimized={img.startsWith("data:")} style={{ objectFit: "cover" }} />
                         ))}
                       </div>
                     )}
@@ -134,6 +140,7 @@ export default async function AdminComplaintDetailPage({
             <AdminComplaintForm
               complaintId={complaint.id}
               currentStatus={complaint.status}
+              allowedStatuses={ALLOWED_TRANSITIONS[complaint.status] ?? []}
             />
           </div>
         </div>

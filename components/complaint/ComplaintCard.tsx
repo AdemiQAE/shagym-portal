@@ -26,13 +26,18 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   safety: "shield", education: "book", other: "file",
 };
 
+/**
+ * Returns a localized relative time string (e.g. "5м назад").
+ * @param d - Date object or ISO string to compare against now
+ * @param t - next-intl translation function
+ */
 function timeAgo(d: Date | string, t: (key: string, values?: any) => string): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  const s = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (s < 60) return t("time.ago_s", { s });
-  if (s < 3600) return t("time.ago_m", { m: Math.floor(s / 60) });
-  if (s < 86400) return t("time.ago_h", { h: Math.floor(s / 3600) });
-  return t("time.ago_d", { d: Math.floor(s / 86400) });
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return t("time.ago_s", { s: seconds });
+  if (seconds < 3600) return t("time.ago_m", { m: Math.floor(seconds / 60) });
+  if (seconds < 86400) return t("time.ago_h", { h: Math.floor(seconds / 3600) });
+  return t("time.ago_d", { d: Math.floor(seconds / 86400) });
 }
 
 interface ComplaintCardProps {

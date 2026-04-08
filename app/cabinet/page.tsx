@@ -5,14 +5,20 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { StatusBadge } from "@/components/complaint/StatusBadge";
 import { Icon } from "@/components/ui/Icon";
+import Image from "next/image";
 import { ComplaintStatus } from "@prisma/client";
 
+/**
+ * Returns a localized relative time string (e.g. "5м назад").
+ * @param d - Date to compare against now
+ * @param t - next-intl translation function
+ */
 function timeAgo(d: Date, t: (key: string, values?: any) => string): string {
-  const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
-  if (s < 60) return t("time.ago_s", { s });
-  if (s < 3600) return t("time.ago_m", { m: Math.floor(s / 60) });
-  if (s < 86400) return t("time.ago_h", { h: Math.floor(s / 3600) });
-  return t("time.ago_d", { d: Math.floor(s / 86400) });
+  const seconds = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+  if (seconds < 60) return t("time.ago_s", { s: seconds });
+  if (seconds < 3600) return t("time.ago_m", { m: Math.floor(seconds / 60) });
+  if (seconds < 86400) return t("time.ago_h", { h: Math.floor(seconds / 3600) });
+  return t("time.ago_d", { d: Math.floor(seconds / 86400) });
 }
 
 export default async function CabinetPage() {
@@ -107,7 +113,7 @@ export default async function CabinetPage() {
                 borderBottom: i < complaints.length - 1 ? "1px solid var(--border)" : "none",
               }}>
                 {c.images[0] && (
-                  <img src={c.images[0]} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border)", flexShrink: 0 }} />
+                  <Image src={c.images[0]} alt={c.title} width={44} height={44} unoptimized={c.images[0].startsWith("data:")} style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border)", flexShrink: 0 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontWeight: 700, fontSize: 14, letterSpacing: "-0.01em", color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

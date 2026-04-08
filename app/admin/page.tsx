@@ -10,6 +10,11 @@ import { ComplaintStatus, Prisma } from "@prisma/client";
 
 const STATUSES: ComplaintStatus[] = ["PENDING", "ACCEPTED", "IN_PROGRESS", "RESOLVED", "CANCELLED"];
 
+/**
+ * Formats a date into a short localized string (e.g. "5 апр.").
+ * @param d - Date to format
+ * @param locale - "kz" for Kazakh, anything else for Russian
+ */
 function fmtDate(d: Date, locale: string) {
   return new Date(d).toLocaleDateString(locale === "kz" ? "kk-KZ" : "ru-RU", { day: "numeric", month: "short" });
 }

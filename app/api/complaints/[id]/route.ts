@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ComplaintStatus } from "@prisma/client";
+import { isTransitionAllowed } from "@/lib/status-transitions";
 
 /**
  * @api {get} /api/complaints/[id] Получение деталей жалобы
@@ -54,32 +55,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const body = await req.json();
 
-    // Admin can change status
-    if (body.status && role === "ADMIN") {
-      const complaint = await prisma.complaint.findUnique({ where: { id } });
-      if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-      const [updated] = await prisma.$transaction([
-        prisma.complaint.update({
-          where: { id },
-          data: { status: body.status as ComplaintStatus },
-        }),
-        prisma.statusLog.create({
-          data: {
-            complaintId: id,
-            changedById: userId,
-            oldStatus: complaint.status,
-            newStatus: body.status as ComplaintStatus,
-            comment: body.comment ?? null,
-            images: body.images ?? [],
-          },
-        }),
-      ]);
-
-      return NextResponse.json(updated);
+    if (!body.status || role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const complaint = await prisma.complaint.findUnique({ where: { id } });
+    if (!complaint) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (!isTransitionAllowed(complaint.status, body.status as ComplaintStatus)) {
+      return NextResponse.json(
+        { error: `Transition from ${complaint.status} to ${body.status} is not allowed` },
+        { status: 400 }
+      );
+    }
+
+    const [updated] = await prisma.$transaction([
+      prisma.complaint.update({
+        where: { id },
+        data: { status: body.status as ComplaintStatus },
+      }),
+      prisma.statusLog.create({
+        data: {
+          complaintId: id,
+          changedById: userId,
+          oldStatus: complaint.status,
+          newStatus: body.status as ComplaintStatus,
+          comment: body.comment ?? null,
+          images: body.images ?? [],
+        },
+      }),
+    ]);
+
+    return NextResponse.json(updated);
   } catch (error) {
     console.error("[COMPLAINT_PATCH]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
