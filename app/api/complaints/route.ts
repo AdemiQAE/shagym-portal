@@ -49,8 +49,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(complaints);
   } catch (error) {
     console.error("[COMPLAINTS_GET]", error);
+    
+    // Convert error to a generic string or extract its message
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: errorMessage, stack: errorStack },
       { status: 500 }
     );
   }
