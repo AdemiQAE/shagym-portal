@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/Icon";
+import { Toast } from "@/components/ui/Toast";
 
 interface VoteButtonProps {
   complaintId: string;
@@ -19,10 +19,10 @@ interface VoteButtonProps {
  */
 export function VoteButton({ complaintId, initialVotes, initialVoted }: VoteButtonProps) {
   const t = useTranslations("complaint");
-  const router = useRouter();
   const [votes, setVotes] = useState(initialVotes);
   const [voted, setVoted] = useState(initialVoted);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
   const handleVote = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ export function VoteButton({ complaintId, initialVotes, initialVoted }: VoteButt
 
       if (!res.ok) {
         if (res.status === 401) {
-          router.push("/auth/login");
+          setToast({ message: t("login_to_vote"), type: "error" });
           // Revert on auth error
           setVoted(!isVoting);
           setVotes(prev => isVoting ? prev - 1 : prev + 1);
@@ -65,6 +65,7 @@ export function VoteButton({ complaintId, initialVotes, initialVoted }: VoteButt
   };
 
   return (
+    <>
     <button
       className={`vote-control ${voted ? "voted" : ""} ${loading ? "loading" : ""}`}
       onClick={handleVote}
@@ -113,5 +114,7 @@ export function VoteButton({ complaintId, initialVotes, initialVoted }: VoteButt
         }
       `}</style>
     </button>
+    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </>
   );
 }

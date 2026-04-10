@@ -89,8 +89,8 @@ export function ComplaintCard({ complaint, votedByMe }: ComplaintCardProps) {
         </div>
 
         {/* Thumb */}
-        {complaint.images?.[0] && (
-          <div className="complaint-thumb-wrap">
+        <div className="complaint-thumb-wrap">
+          {complaint.images?.[0] ? (
             <Image
               src={complaint.images[0]}
               alt={complaint.title}
@@ -99,8 +99,14 @@ export function ComplaintCard({ complaint, votedByMe }: ComplaintCardProps) {
               className="complaint-thumb"
               unoptimized={complaint.images[0].startsWith("data:")}
             />
-          </div>
-        )}
+          ) : (
+            <svg className="complaint-thumb-placeholder" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="72" height="72" rx="8" fill="var(--bg-3, #1a1a2e)" />
+              <path d="M26 42l6-8 4 5 6-10 8 13H22z" fill="var(--border-3, #2a2a3e)" />
+              <circle cx="30" cy="28" r="4" fill="var(--border-3, #2a2a3e)" />
+            </svg>
+          )}
+        </div>
       </div>
     </Link>
   );
